@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+<!--   <meta name="description"
+        content="UniRestore bridges the gap between Perceptual Image Restoration (PIR) and Task-oriented Image Restoration (TIR) by leveraging a diffusion prior and adaptive feature fusion. While PIR enhances visual quality and TIR improves downstream task performance, UniRestore optimizes both aspects by integrating Complementary Feature Restoration Module (CFRM) and Task Feature Adapter (TFA), ensuring high-quality restorations that support downstream vision tasks effectively.">
+  <meta name="keywords" content="Point-based, Crowd Counting, Localization, Auxiliary Learning">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta property="og:image" content="./static/images/thumbnail.png"/>
+  <link rel="image_src" href="./static/images/thumbnail.png">
+  <link rel="icon"
+        type="image/x-icon"
+        href="./static/images/favicon.ico"/> -->
+
+  <meta name="description"
+        content="UniRestore bridges the gap between Perceptual Image Restoration (PIR) and Task-oriented Image Restoration (TIR) by leveraging a diffusion prior and adaptive feature fusion. While PIR enhances visual quality and TIR improves downstream task performance, UniRestore optimizes both aspects by integrating Complementary Feature Restoration Module (CFRM) and Task Feature Adapter (TFA), ensuring high-quality restorations that support downstream vision tasks effectively.">
+  <meta name="keywords" content="Image Restoration, Image Enhancement, Multitask Learning, Diffusion Models, Image Generation">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta property="og:image" content="./unirestore_files/logo.png"/>
+  <link rel="image_src" href="./unirestore_files/logo.png">
+  <link rel="icon"
+        type="image/x-icon"
+        href="./unirestore_files/logo.png"/>
+
+  <title>UniRestore: Unified Perceptual and Task-Oriented Image Restoration Model Using Diffusion Prior
+    </title>
+
+
+    <style>
+        .img-container {
+            text-align: center; /* Center the text and images */
+            margin-bottom: 20px; /* Adds some space between the image groups */
+        }
+
+        .image-with-caption {
+            display: inline-block; /* Allows multiple elements side by side */
+            margin: 10px; /* Adds some space around each image and caption */
+        }
+
+        .custom-gif {
+            width: 200px; /* Adjust based on your preference */
+            height: auto; /* Maintain aspect ratio */
+            margin-top: 10px; /* Space between caption and image */
+        }
+
+        .regular-gif{
+          width: 200px;
+          height: 120px;
+          margin-top: 10px
+        }
+
+        .caption {
+            font-weight: bold; /* Optional: makes the caption text bold */
+        }
+    </style>
+  
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-EDF010G6PN"></script>
+  <script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-EDF010G6PN');
+
+  </script>
+
+  <script type="module"
+          src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.0.min.js"></script>
+  <script type="text/javascript" src="https://code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+  <script src="https://unpkg.com/interactjs/dist/interact.min.js"></script>
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
+        rel="stylesheet">
+
+  <link rel="stylesheet" type="text/css" href="./static/slick/slick.css"/>
+  <link rel="stylesheet" type="text/css" href="./static/slick/slick-theme.css"/>
+
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script src="./static/js/bulma-slider.min.js"></script>
+  <script src="./static/js/index.js"></script>
+</head>
+<body>
+
+
+
+<section class="hero">
+  <div class="hero-body">
+    <div class="container">
+<!--       <div class="columns is-centered">
+        <div class="column is-4 has-text-centered">
+          <img src="static/images/logo.svg" alt="HyperNeRF"/>
+        </div>
+      </div> -->
+      <div class="container has-text-centered">
+        <h1 class="title is-1 publication-title">
+			UniRestore: Unified Perceptual and Task-Oriented Image Restoration Model Using Diffusion Prior.
+        </h1>
+        <div class="is-size-5 publication-authors">
+          <div class="author-block"><a href="https://sites.google.com/view/cihsiang/home">I-Hsiang Chen</a> <sup> 1* </sup></div>
+          <div class="author-block"><a href="https://sites.google.com/view/weitingchen/home"> Wei-Ting Chen</a> <sup> 1,2,4*</sup></div>
+          <div class="author-block"><a href="https://scholar.google.com/citations?user=oZanP1AAAAAJ&hl=zh-TW"> Yu-Wei Liu</a> <sup> 1</sup></div>
+          <div class="author-block"><a href="https://scholar.google.com.tw/citations?user=xUtdoMcAAAAJ&hl=zh-TW"> Yuan-Chun Chiang</a> <sup> 1</sup></div>
+          <div class="author-block"><a href="https://homepage.ntu.edu.tw/~sykuo"> Sy-Yen Kuo</a> <sup> 1,3</sup></div>
+          <div class="author-block"><a href="https://faculty.ucmerced.edu/mhyang/"> Ming-Hsuan Yang</a> <sup> 4,5</sup></div>
+        <div class="is-size-5 publication-authors">
+          <span class="author-block"><sup>1</sup>National Taiwan University</span>
+          <span class="author-block"><sup>2</sup>Microsoft</span>
+          <span class="author-block"><sup>3</sup>Chang Gung University</span>
+          <span class="author-block"><sup>4</sup>UC Merced</span>
+          <span class="author-block"><sup>5</sup>Google Research</spa>
+        </div>
+
+        <!-- <div class="is-size-5 publication-authors">
+          <span class="author-block"> </sup>* Co-corresponding authors</span>
+        </div> -->
+        <div class="is-size-5 publication-authors">
+          <span class="author-block"> </sup>(CVPR 2025 Highlight)</span>
+        </div>
+          
+        <div class="column has-text-centered">
+          <div class="publication-links">
+            <!-- PDF Link. -->
+            <span class="link-block">
+                <a href="https://arxiv.org/abs/2501.13134" 
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fas fa-file-pdf"></i>
+                  </span>
+                  <span>Paper</span>
+                </a>
+              </span>
+            <span class="link-block">
+                <a href="https://arxiv.org/abs/2501.13134" 
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="ai ai-arxiv"></i>
+                  </span>
+                  <span>arXiv</span>
+                </a>
+            </span>
+            <span class="link-block">
+              <a href="https://github.com/unirestore/UniRestore"  
+                 class="external-link button is-normal is-rounded is-dark">
+                <span class="icon">
+                    <i class="fab fa-github"></i>
+                </span>
+                <span>Code</span>
+                </a>
+            </span>
+            <!-- Dataset Link. -->
+            <span class="link-block">
+              <a href="https://github.com/unirestore/UniRestore" 
+                 class="external-link button is-normal is-rounded is-dark">
+                <span class="icon">
+                    <i class="far fa-images"></i>
+                </span>
+                <span>Data</span>
+                </a>
+              </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="hero teaser">
+  <div class="container is-max-desktop">
+    <div class="hero-body">
+      <video autoplay muted loop playsinline style="width: 100%; height: auto; border-radius: 12px;">
+        <source src="./unirestore_files/teaser/teaser2.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+      </video>
+      <h2 class="subtitle has-text-centered">
+        <span class="methodname">UniRestore</span> is a unified image restoration framework for both perceptual and machine vision.
+      </h2>
+    </div>
+  </div>
+</section> 
+
+
+
+<div class="columns is-centered">
+  <div class="column is-two-thirds has-text-justified">
+    <p>
+      <b>UniRestore</b> leverages diffusion prior to unify <span class="tag is-light is-info">Perceptual Image Restoration (PIR)</span> 
+      and <span class="tag is-light is-warning">Task-oriented Image Restoration (TIR)</span>,
+      achieving both high visual fidelity and task utility.
+      <b>PIR</b> enhances visual clarity, but its outputs may not benefit recognition tasks.
+      In contrast, <b>TIR</b> optimizes features for tasks like classification or segmentation,
+      but often compromises visual appeal.
+    </p>
+  </div>
+</div>
+
+
+
+<hr/>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Centered Responsive YouTube Video Embed</title>
+    <style>
+        .video-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+        }
+        .video-container iframe {
+            width: 100%;
+            max-width: 720px; /* Optional: Set a max-width if you want */
+            height: auto;
+            aspect-ratio: 16 / 9;
+        }
+    </style>
+</head>
+<body>
+    <div class="video-container">
+        <iframe src="https://www.youtube.com/embed/Jm1NkDDXN90" 
+			title="YouTube video player" 
+			frameborder="0" 
+			allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+			referrerpolicy="strict-origin-when-cross-origin" 
+			allowfullscreen>
+		</iframe>
+    </div>
+</body>
+</html>
+
+
+
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <!-- Abstract. -->
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Abstract</h2>
+        <div class="content has-text-justified">
+          <p>
+            Image restoration aims to recover content from inputs degraded by various factors, such as adverse weather, blur, and noise. 
+			Perceptual Image Restoration (PIR) methods improve visual quality but often do not support downstream tasks effectively. 
+      On the other hand, Task-oriented Image Restoration (TIR) methods focus on enhancing image utility for high-level vision tasks, sometimes compromising visual quality.
+			This paper introduces UniRestore, a unified image restoration model that bridges the gap between PIR and TIR by using a diffusion prior.
+			The diffusion prior is designed to generate images that align with human visual quality preferences, but these images are often unsuitable for TIR scenarios.
+          </p>
+          <p>
+            To solve this limitation, UniRestore utilizes encoder features from an autoencoder to adapt the diffusion prior to specific tasks.
+            We propose a Complementary Feature Restoration Module (CFRM) to reconstruct degraded encoder features 
+            and a Task Feature Adapter (TFA) module to facilitate adaptive feature fusion in the decoder.
+            This design allows UniRestore to optimize images for both human perception and downstream task requirements, addressing discrepancies between visual quality and functional needs. 
+            Integrating these modules also enhances UniRestore’s adaptability and efficiency across diverse tasks. 
+            Extensive experiments demonstrate the superior performance of UniRestore in both PIR and TIR scenarios.
+          </p> 
+        </div>
+      </div>
+    </div>
+  </div>
+</section>    
+<hr/>
+
+<style>
+  .module-block {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  .module-block .image {
+    flex-shrink: 0;
+  }
+  .module-block .content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+  }
+</style>
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="content has-text-justified">
+      <h2 class="title is-3 has-text-centered">Architecture of UniRestore</h2>
+      <p>
+		The main contributions of UniRestore are the <span class="tag is-light" style="background-color: #ffeef0; color: #b30033;">Complementary Feature Restoration Module (CFRM)</span> and the <span class="tag is-light" style="background-color: #e7f6e7; color: #1e5e1e;">Task Feature Adapter (TFA)</span> modules, 
+    which utilize task-specific prompts to effectively adapt diffusion priors for both perceptual and task-oriented image restoration, 
+    enabling unified and extensible performance across diverse downstream tasks.
+
+      <div class="has-text-centered">
+        <img style="width: 100%;" src="./unirestore_files/model/Overview.png"
+             alt="Architecture of UniRestore."/>
+
+        <div class="content has-text-justified">
+          <p>
+		        UniRestore bridges perceptual and task-oriented image restoration by incorporating two essential modules. 
+            The <b>CFRM</b> is designed to restore clean features from degraded inputs, guiding the denoising process with enhanced representations. 
+            To adapt the diffusion prior for diverse downstream tasks, we introduce the <b>TFA</b>, which dynamically fuses restored and generated features through lightweight task-specific prompts. 
+            By enabling unified modeling and efficient task extensibility, UniRestore achieves high visual fidelity while preserving strong task performance across various real-world scenarios.
+        </div> 
+      </div>
+
+      <h3 class="title is-4 has-text-centered">Proposed Modules</h3>
+      <div class="columns is-multiline is-variable is-6">
+        
+        <!-- CFRM Image -->
+        <div class="column is-half">
+          <figure class="image">
+            <img src="./unirestore_files/model/CFRM.png" alt="CFRM Diagram" />
+          </figure>
+        </div>
+
+        <!-- TFA Image -->
+        <div class="column is-half">
+          <figure class="image">
+            <img src="./unirestore_files/model/TFA.png" alt="TFA Diagram" />
+          </figure>
+        </div>
+
+        <!-- CFRM Text -->
+        <div class="column is-half">
+          <p class="content has-text-justified">
+            <span class="tag is-light" style="background-color: #ffeef0; color: #b30033;">Complementary Feature Restoration Module (CFRM)</span> is designed to restore clean and informative features from degraded inputs within the encoder. It enhances feature quality through a four-step process: feature enhancement, intra-group channel attention, inter-group channel integration, and feature recovery. By modeling diverse degradation patterns and emphasizing task-relevant information, CFRM provides complementary representations that guide the decoder for high-quality image restoration and improved downstream performance.
+          </p>
+        </div>
+
+        <!-- TFA Text -->
+        <div class="column is-half">
+          <p class="content has-text-justified">
+            <span class="tag is-light" style="background-color: #e7f6e7; color: #1e5e1e;">Task Feature Adapter (TFA)</span> adapts restored encoder features for diverse recognition tasks by integrating them with diffusion features in the decoder. Instead of using separate adapters per task, TFA employs lightweight, learnable prompts that guide feature fusion at each layer. These prompts are dynamically updated, allowing efficient task adaptation without retraining the entire model. This design ensures scalability and enables seamless extension to new tasks with minimal overhead.
+          </p>
+        </div>
+
+      </div>
+
+     <p>
+        <em>
+        Moreover, introducing additional tasks is simple and efficient—only a new task-specific prompt needs to be added and trained, without modifying the main model or accessing previous data, enabling scalable multi-task extension.
+        </em>
+      </p>
+  </div>
+</section>
+
+<hr/>
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="content has-text-justified">
+      <h2 class="title is-3 has-text-centered">Quantitative Results</h2>
+      <p> 
+        Quantitative results demonstrate that while PIR- and TIR-based methods excel in their respective tasks, they struggle to generalize beyond their original objectives. In contrast, UniRestore consistently achieves strong performance across perceptual restoration, classification, and segmentation using a single unified model. It not only outperforms existing baselines in multi-task settings but also generalizes effectively to unseen datasets and unknown downstream models, highlighting its robustness and scalability.     
+      </p>
+      <div class="img-container">
+        <div class="image-with-caption">
+            <div class="caption"></b>Performance comparison of existing methods on one seen and five unseen PIR datasets.</b></div>
+            <img style="width: 100%;" src="./unirestore_files/Quantitative/quantitative_ir.png"
+                  alt="quantitative_ir."/>
+        </div>
+      </div>
+
+      <div class="img-container">
+        <div class="image-with-caption">
+            <div class="caption"></b>TIR for image classification.</b></div>
+            <img style="width: 100%;" src="./unirestore_files/Quantitative/quantitative_cls.png"
+                  alt="quantitative_cls."/>
+        </div>
+        <div class="image-with-caption">
+          <div class="caption"></b>TIR for semantic segmentation.</b></div>
+          <img style="width: 100%;" src="./unirestore_files/Quantitative/quantitative_seg.png"
+                  alt="quantitative_seg."/>
+        </div>
+      </div>
+
+      <p>
+          <em>
+            Methods marked with "*" indicate models trained under the UniRestore multi-task setting; others are trained using their original objective.
+          </em>
+        </p>
+    </div>
+  </div>
+</section>
+
+
+<hr/>
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="content has-text-justified">
+      <h2 class="title is-3 has-text-centered">Qualitative Results</h2>
+      <p>
+        UniRestore effectively removes degradation patterns and reconstructs finer details, leading to improved visual quality in PIR task.
+        Moreover, for TIR task, UniRestore emphasizes high-frequency information, which improves activation map alignment and enables more accurate object boundaries, demonstrating enhanced spatial consistency and stronger overall task performance.     
+      </p>
+
+      <div class="img-container">
+        <div class="image-with-caption">
+          <img class="regular-gif" src="./unirestore_files/Qualitative/PIR_sots.gif">
+        </div>
+        <div class="image-with-caption">
+          <img class="regular-gif" src="./unirestore_files/Qualitative/PIR_fog.gif">
+        </div>
+        <div class="image-with-caption">
+          <img class="regular-gif" src="./unirestore_files/Qualitative/PIR_snow.gif">
+        </div>
+        <div class="image-with-caption">
+          <img class="regular-gif" src="./unirestore_files/Qualitative/PIR_frost.gif">
+        </div>
+      </div>
+      
+      <div class="img-container">
+        <div class="image-with-caption">
+          <img class="regular-gif" src="./unirestore_files/Qualitative/PIR_jpeg.gif">
+        </div>
+        <div class="image-with-caption">
+          <img class="regular-gif" src="./unirestore_files/Qualitative/PIR_blur.gif">
+        </div>
+        <div class="image-with-caption">
+          <img class="regular-gif" src="./unirestore_files/Qualitative/PIR_noise.gif">
+        </div>
+        <div class="image-with-caption">
+          <img class="regular-gif" src="./unirestore_files/Qualitative/PIR_brightness.gif">
+        </div>
+      </div>
+      
+      <div class="img-container">
+        <div class="image-with-caption">
+          <img class="regular-gif" src="./unirestore_files/Qualitative/cls_r0.gif">
+        </div>
+        <div class="image-with-caption">
+          <img class="regular-gif" src="./unirestore_files/Qualitative/cls_r2.gif">
+        </div>
+        <div class="image-with-caption">
+          <img class="regular-gif" src="./unirestore_files/Qualitative/seg_r0.gif">
+        </div>
+        <div class="image-with-caption">
+          <img class="regular-gif" src="./unirestore_files/Qualitative/seg_r2.gif">
+        </div>
+      </div>
+      
+      <div class="img-container">
+        <div class="image-with-caption">
+          <img class="regular-gif" src="./unirestore_files/Qualitative/cls_r1.gif">
+        </div>
+        <div class="image-with-caption">
+          <img class="regular-gif" src="./unirestore_files/Qualitative/cls_r3.gif">
+        </div>
+        <div class="image-with-caption">
+          <img class="regular-gif" src="./unirestore_files/Qualitative/seg_r1.gif">
+        </div>
+        <div class="image-with-caption">
+          <img class="regular-gif" src="./unirestore_files/Qualitative/seg_r3.gif">
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<hr/>
+<section class="section" id="BibTeX">
+  <div class="container content is-max-desktop">
+    <h2 class="title">BibTeX</h2>
+    <pre><code>@inproceedings{chen2025unirestore,
+	  title={UniRestore: Unified Perceptual and Task-Oriented Image Restoration Model Using Diffusion Prior},
+	  author={Chen, I and Chen, Wei-Ting and Liu, Yu-Wei and Chiang, Yuan-Chun and Kuo, Sy-Yen and Yang, Ming-Hsuan and others},
+	  booktitle={Proceedings of the Computer Vision and Pattern Recognition Conference},
+	  pages={17969--17979},
+	  year={2025}
+	}</code></pre>
+  </div>
+</section>
+
+
+<footer class="footer">
+  <div class="container">
+    <div class="content has-text-centered">
+      <a class="icon-link" href="https://github.com/unirestore/UniRestore">
+        <i class="fas fa-file-pdf"></i>
+      </a>
+      <a class="icon-link" href="https://github.com/unirestore/UniRestore" class="external-link" disabled>
+        <i class="fab fa-github"></i>
+      </a>
+    </div>
+  </div>
+</footer>
+
+<script type="text/javascript" src="./static/slick/slick.min.js"></script>
+</body>
+</html>
