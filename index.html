@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="description"
-        content="DiffVQA leverages the robust generalization capabilities of diffusion models pre-trained on extensive datasets for Video Quality Assessment. Our framework adapts diffusion models to reconstruct identical input frames, extracting semantic and distortion features to predict quality scores with superior performance and cross-dataset generalization.">
-  <meta name="keywords" content="Video Quality Assessment, Diffusion Models, Feature Extraction, VQA, UGC-VQA">
+        content="DiffVQA leverages diffusion models as feature extractors for no-reference video quality assessment. By adapting Stable Diffusion to reconstruct identical input frames, DiffVQA extracts semantic, distortion, and temporal coherence features for robust video quality prediction.">
+  <meta name="keywords" content="Video Quality Assessment, Diffusion Models, Feature Extraction, No-Reference VQA, UGC-VQA, Mamba">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta property="og:image" content="./diffvqa_files/logo.png"/>
   <link rel="image_src" href="./diffvqa_files/logo.png">
@@ -39,6 +39,7 @@
 
         .caption {
             font-weight: bold;
+            margin-bottom: 8px;
         }
     </style>
 
@@ -87,7 +88,7 @@
     <div class="container">
       <div class="container has-text-centered">
         <h1 class="title is-1 publication-title">
-			DiffVQA: Video Quality Assessment Using Diffusion Feature Extractor
+      DiffVQA: Video Quality Assessment Using Diffusion Feature Extractor
         </h1>
         <div class="is-size-5 publication-authors">
           <div class="author-block"><a href="https://sites.google.com/view/weitingchen/home">Wei-Ting Chen</a> <sup>1,2*</sup></div>
@@ -104,9 +105,6 @@
           <span class="author-block"><sup>4</sup>Snap Inc.</span>
         </div>
 
-        <div class="is-size-5 publication-authors">
-          <span class="author-block">(ICML 2025)</span>
-        </div>
 
         <div class="column has-text-centered">
           <div class="publication-links">
@@ -158,7 +156,7 @@
         </div>
       </div>
       <h2 class="subtitle has-text-centered">
-        <span class="methodname">DiffVQA</span> harnesses diffusion models as feature extractors for robust video quality assessment with superior cross-dataset generalization.
+        <span class="methodname">DiffVQA</span> adapts diffusion models into quality-aware feature extractors for robust no-reference video quality assessment.
       </h2>
     </div>
   </div>
@@ -169,11 +167,18 @@
 <div class="columns is-centered">
   <div class="column is-two-thirds has-text-justified">
     <p>
-      <b>DiffVQA</b> introduces a novel Video Quality Assessment framework that leverages
-      <span class="tag is-light is-info">diffusion models</span> pre-trained on extensive datasets as powerful feature extractors.
-      Our framework adapts these models to reconstruct identical input frames through a control module,
-      extracting <span class="tag is-light is-warning">semantic</span> and <span class="tag is-light is-danger">distortion</span> features
-      from a resizing branch and a cropping branch, respectively.
+      <b>DiffVQA</b> explores a simple but important question: can a diffusion model, originally trained for image generation,
+      become a stronger feature extractor for Video Quality Assessment?
+      Instead of generating new images, DiffVQA adapts Stable Diffusion to reconstruct the same input frame.
+      If the model can faithfully reconstruct frames with noise, blur, low light, and other degradations, then its internal features are likely to preserve
+      the semantic and distortion cues needed for perceptual quality prediction.
+    </p>
+    <p>
+      The framework combines three key ideas:
+      <span class="tag is-light is-info">Diffusion Feature Extractor</span>,
+      <span class="tag is-light is-warning">Semantic / Distortion Branches</span>, and
+      <span class="tag is-light is-success">Temporal Coherence Modeling</span>.
+      The final quality score is predicted by combining diffusion-based frame features with a Mamba-based temporal module.
     </p>
   </div>
 </div>
@@ -190,20 +195,10 @@
         <h2 class="title is-3">Abstract</h2>
         <div class="content has-text-justified">
           <p>
-            Video Quality Assessment (VQA) aims to evaluate video quality based on perceptual distortions and human preferences.
-            Despite the promising performance of existing methods using Convolutional Neural Networks (CNNs) and Vision Transformers (ViTs),
-            they often struggle to align closely with human perceptions, particularly in diverse real-world scenarios.
-            This challenge is exacerbated by the limited scale and diversity of available datasets.
+            Video Quality Assessment (VQA) estimates how humans perceive video quality. Although recent CNN- and ViT-based no-reference VQA methods have achieved strong performance, they still face difficulties in real-world user-generated videos, where content, distortions, and temporal changes are highly diverse. This limitation is partly caused by the restricted scale and diversity of available VQA datasets.
           </p>
           <p>
-            To address this limitation, we introduce a novel VQA framework, <b>DiffVQA</b>, which harnesses the robust generalization
-            capabilities of diffusion models pre-trained on extensive datasets. Our framework adapts these models to reconstruct identical
-            input frames through a control module. The adapted diffusion model is then used to extract semantic and distortion features
-            from a resizing branch and a cropping branch, respectively. To enhance the model's ability to handle long-term temporal dynamics,
-            a parallel Mamba module is introduced, which extracts temporal coherence augmented features that are merged with the diffusion
-            features to predict the final score. Experiments across multiple datasets demonstrate DiffVQA's superior performance on
-            intra-dataset evaluations and its exceptional generalization across datasets. These results confirm that leveraging a diffusion
-            model as a feature extractor can offer enhanced VQA performance compared to CNN and ViT backbones.
+            We propose <b>DiffVQA</b>, a no-reference VQA framework that leverages the generalization ability of diffusion models pre-trained on large-scale visual data. DiffVQA adapts Stable Diffusion to reconstruct identical input frames through an additional Controller. After adaptation, the diffusion model is used as a feature extractor rather than a generator. It extracts semantic features from resized frames and distortion-aware features from randomly cropped frames. A parallel Mamba-based Temporal Coherence Augmentation Block further models long-range video dynamics. Experiments across multiple UGC-VQA datasets demonstrate that DiffVQA achieves strong intra-dataset performance and robust cross-dataset generalization.
           </p>
         </div>
       </div>
@@ -232,15 +227,20 @@
 <section class="section">
   <div class="container is-max-desktop">
     <div class="content has-text-justified">
-      <h2 class="title is-3 has-text-centered">Architecture of DiffVQA</h2>
+      <h2 class="title is-3 has-text-centered">Method Overview</h2>
       <p>
-        The diffusion feature extractor extracts semantic and distortion features from video frames, which are enhanced by the
-        <span class="tag is-light" style="background-color: #e7f6e7; color: #1e5e1e;">DFF</span>,
-        <span class="tag is-light" style="background-color: #ffeef0; color: #b30033;">TDM</span>, and
-        <span class="tag is-light" style="background-color: #e8f0fe; color: #1a3d7c;">FFF</span> modules.
-        The TCAB modules are also used to capture temporal coherence in parallel.
-        Features extracted from the resized branch are denoted with the suffix "-S" for semantic information,
-        while those from the random crop branch use the suffix "-D" for distortion-related features.
+        DiffVQA is built around an adapted diffusion feature extractor. For each video frame, two visual views are created:
+        a resized view and a randomly cropped view. The resized branch is designed to preserve global semantic information,
+        while the random crop branch focuses on local distortion details. Both branches are processed by the adapted diffusion model,
+        producing latent and multi-scale denoising features.
+      </p>
+      <p>
+        These diffusion features are refined by three lightweight modules.
+        <b>DFF</b> fuses latent and multi-scale diffusion features,
+        <b>TDM</b> captures temporal differences between adjacent frames,
+        and <b>FFF</b> aggregates refined features across frames.
+        In parallel, <b>TCAB</b> uses a Mamba-based sequence modeling design to capture temporal coherence over the whole video.
+        Finally, the model predicts frame-level quality scores and frame-level weights, then computes the final video quality score by weighted summation.
       </p>
 
       <div class="has-text-centered">
@@ -248,12 +248,16 @@
              alt="Architecture of DiffVQA."/>
       </div>
 
-      <h3 class="title is-4 has-text-centered" style="margin-top: 2rem;">Adapting Diffusion Model to Feature Extractor</h3>
+      <h3 class="title is-4 has-text-centered" style="margin-top: 2rem;">Diffusion Feature Extractor</h3>
       <p>
-        (a) During training, only the Controller is optimized, with the text input set to null.
-        The adaptation is directed by minimizing the discrepancy between the estimated and actual noise at each time step.
-        (b) A similar architecture can be used for image restoration, but we repurpose it for image reconstruction here.
-        (c) During inference, we use the reconstructed latent, along with the features from the Denoising Network at time step t = 0 as the extracted features.
+        Pre-trained diffusion models are originally designed for text-to-image generation, so they cannot be directly used as image feature extractors.
+        DiffVQA solves this by adding a trainable Controller to guide Stable Diffusion to reconstruct the identical input frame.
+        During adaptation, the input frame is encoded into latent space, noise is added, and the denoising network learns to predict the added noise under the guidance of the Controller.
+        The text condition is set to null, and only the Controller is optimized.
+      </p>
+      <p>
+        After adaptation, DiffVQA uses the reconstructed latent feature and the multi-scale denoising features at the final denoising step as video-quality-aware representations.
+        This design allows the diffusion model to preserve both high-level content and low-level degradation patterns, which are both important for VQA.
       </p>
       <div class="has-text-centered">
         <img style="width: 100%;" src="./diffvqa_files/model/DFE.png"
@@ -269,13 +273,14 @@
     <div class="content has-text-justified">
       <h2 class="title is-3 has-text-centered">Quantitative Results</h2>
       <p>
-        Experiments across multiple datasets demonstrate DiffVQA's superior performance on intra-dataset evaluations
-        and its exceptional generalization across datasets. These results confirm that leveraging a diffusion model
-        as a feature extractor can offer enhanced VQA performance compared to CNN and ViT backbones.
+        We evaluate DiffVQA across multiple UGC-VQA datasets to validate its effectiveness. After pre-training on LSVQ and fine-tuning on LIVE-VQC, KoNViD-1k, and YouTube-UGC, DiffVQA achieves strong performance across all three datasets, demonstrating its ability to accurately predict human perceptual quality in diverse user-generated videos. To further assess generalization, we conduct cross-dataset evaluations by training on one dataset and testing on another. DiffVQA consistently shows robust performance across different training and testing dataset combinations, highlighting its generalization capability across real-world video quality assessment scenarios.
+      </p>
+      <p>
+        These results demonstrate that leveraging a diffusion model as a feature extractor can provide effective quality-aware representations for VQA, leading to state-of-the-art performance on standard UGC-VQA benchmarks and strong cross-dataset generalization.
       </p>
       <div class="img-container">
         <div class="image-with-caption">
-            <div class="caption">Performance comparison on multiple UGC-VQA datasets.</div>
+            <div class="caption">Evaluation on multiple UGC-VQA datasets after fine-tuning.</div>
             <img style="width: 100%;" src="./diffvqa_files/Quantitative/multiple_UGC-VQA .png"
                   alt="Quantitative results on multiple UGC-VQA datasets."/>
         </div>
@@ -283,7 +288,7 @@
 
       <div class="img-container">
         <div class="image-with-caption">
-            <div class="caption">Cross-dataset generalization evaluation.</div>
+            <div class="caption">Cross-dataset generalization evaluation across LIVE-VQC, KoNViD-1k, and YouTube-UGC.</div>
             <img style="width: 100%;" src="./diffvqa_files/Quantitative/cross_datasets.png"
                   alt="Cross-dataset generalization results."/>
         </div>
@@ -297,15 +302,19 @@
 <section class="section">
   <div class="container is-max-desktop">
     <div class="content has-text-justified">
-      <h2 class="title is-3 has-text-centered">Qualitative Results</h2>
+      <h2 class="title is-3 has-text-centered">Examples of Reconstructed Results</h2>
       <p>
-        Our adaptation allows reconstruction of video frames containing a spectrum of degradations with minimal error,
-        demonstrating the effectiveness of the diffusion feature extractor in capturing both semantic and distortion information.
+        The adapted diffusion model is trained to reconstruct the input frame rather than restore it into a cleaner version.
+        This distinction is important: for video quality assessment, degradations such as noise, blur, and low light are not artifacts to be removed,
+        but perceptual signals that should be preserved and represented.
+      </p>
+      <p>
+        The examples below compare the input frame, reconstructed frame, and error map. The small reconstruction error indicates that the adapted diffusion model successfully retains both semantic content and distortion information, supporting its use as a feature extractor for VQA.
       </p>
 
       <div class="has-text-centered">
         <img style="width: 100%;" src="./diffvqa_files/Qualitative/reconstruct.png"
-              alt="Reconstructed results."/>
+              alt="Examples of reconstructed results from the adapted diffusion model."/>
       </div>
     </div>
   </div>
